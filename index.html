@@ -2,28 +2,29 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>IMAGINATION — Hub (IA + Spotify)</title>
+  <title>IMAGINATION — Hub TURBO (IA + YouTube)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    html, body { height:100%; margin:0; background:#111; overflow:hidden; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    html, body { height:100%; margin:0; background:#000; overflow:hidden; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     canvas { display:block; position:fixed; inset:0; z-index:0; }
     #wrap { position:relative; z-index:10; min-height:100%; display:grid; place-items:center; padding:24px; }
-    .card { width:min(980px, 96vw); background:rgba(255,255,255,.06); border-radius:18px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.45); backdrop-filter: blur(8px); }
+    .card { width:min(1100px, 96vw); background:rgba(255,255,255,.05); border-radius:18px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.6); backdrop-filter: blur(8px); }
     header { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:6px 8px 12px; }
     h1 { margin:0; font-size:18px; color:#fff; letter-spacing:.3px; }
     .brand { display:flex; align-items:center; gap:10px; }
-    .brand .dot { width:10px; height:10px; border-radius:50%; background:#e9e9e9; box-shadow:0 0 12px rgba(255,255,255,.6); }
-    .tabs { display:flex; gap:6px; }
+    .brand .dot { width:10px; height:10px; border-radius:50%; background:#e9e9e9; box-shadow:0 0 12px rgba(255,255,255,.8); }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; }
     .tab-btn { cursor:pointer; border:0; border-radius:12px; padding:10px 14px; background:#e9e9e9; color:#111; font-weight:700; }
     .tab-btn[aria-selected="true"] { background:#111; color:#e9e9e9; outline:1px solid rgba(255,255,255,.2); }
     .panel { display:none; }
     .panel.active { display:block; }
-    .spotify-embed { width:100%; height: 552px; border-radius:12px; overflow:hidden; }
-    @media (max-width:600px){ .spotify-embed { height:420px; } }
+    .embed { width:100%; height: 552px; border-radius:12px; overflow:hidden; }
+    @media (max-width:600px){ .embed { height:420px; } }
     #hint { margin-top:8px; font-size:12px; color:#ddd; opacity:.9; }
     .row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
     .kicker { font-size:12px; opacity:.9; color:#ddd; }
-    .badge { background:rgba(255,255,255,.12); color:#fff; padding:2px 8px; border-radius:999px; font-size:11px; }
+    .badge { background:rgba(255,255,255,.2); color:#fff; padding:2px 8px; border-radius:999px; font-size:11px; }
+    .ground { margin-top:8px; height:6px; background:linear-gradient(90deg, rgba(255,255,255,.3), rgba(255,255,255,.7), rgba(255,255,255,.3)); border-radius:999px; }
   </style>
 </head>
 <body>
@@ -33,219 +34,212 @@
       <header>
         <div class="brand">
           <div class="dot"></div>
-          <h1>IMAGINATION — Hub</h1>
+          <h1>IMAGINATION — Hub TURBO</h1>
         </div>
-        
         <div class="tabs" role="tablist">
-          <button class="tab-btn" role="tab" id="tab-ia" aria-selected="true" aria-controls="panel-ia">IA</button>
-          <button class="tab-btn" role="tab" id="tab-spotify" aria-selected="false" aria-controls="panel-spotify">Spotify</button>
+          <button class="tab-btn" role="tab" id="tab-ia" aria-selected="true" aria-controls="panel-ia">IA Turbo</button>
+          <button class="tab-btn" role="tab" id="tab-yt" aria-selected="false" aria-controls="panel-yt">YouTube</button>
         </div>
-    
       </header>
 
       <!-- IA Panel -->
       <section id="panel-ia" class="panel active" role="tabpanel" aria-labelledby="tab-ia">
         <div class="row">
-          <div class="kicker">Geração automática com IA <span class="badge">tecla P toca/pausa</span> <span class="badge">visualização reativa</span></div>
+          <div class="kicker">
+            Visualizador explosivo — <span class="badge">modo TURBO ativo</span> — tecla P = Play/Pause
+          </div>
         </div>
-       <div class="video-wrapper">
-  <iframe
-    id="ytplayer"
-    width="560"
-    height="315"
-    src="https://www.youtube.com/embed/r4_26diSPMw?autoplay=1&playsinline=1&loop=1&playlist=r4_26diSPMw&controls=0&modestbranding=1&rel=0&enablejsapi=1"
-    title="YouTube video"
-    frameborder="0"
-    allow="autoplay; encrypted-media; picture-in-picture"
-    allowfullscreen>
-  </iframe>
-  <button id="playWithSound" class="play-btn" style="display:none;">▶️ Reproduzir com som</button>
-</div>
+        <div id="hint">A carregar a faixa…</div>
+        <div class="ground" aria-hidden="true"></div>
       </section>
-    
+
+      <!-- YouTube Panel -->
+      <section id="panel-yt" class="panel" role="tabpanel" aria-labelledby="tab-yt">
+        <div class="row">
+          <div class="kicker">
+            YouTube embed (não reativo — iframe bloqueia o acesso ao áudio).
+          </div>
+        </div>
+        <div class="embed" aria-label="YouTube embed">
+          <iframe
+            width="100%" height="100%" style="border:0; border-radius:12px;"
+            src="https://www.youtube.com/embed/9LVr3gxiD1o?autoplay=1&mute=0"
+            title="YouTube video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </section>
     </div>
   </div>
 
   <script>
-  // ---- Tabs
-  const tabIA = document.getElementById('tab-ia');
-  const tabSp = document.getElementById('tab-spotify');
-  const panelIA = document.getElementById('panel-ia');
-  const panelSp = document.getElementById('panel-spotify');
-  function select(tab) {
-    if (tab === 'ia') {
-      tabIA?.setAttribute('aria-selected','true'); tabSp?.setAttribute('aria-selected','false');
-      panelIA?.classList.add('active'); panelSp?.classList.remove('active');
-    } else {
-      tabIA?.setAttribute('aria-selected','false'); tabSp?.setAttribute('aria-selected','true');
-      panelSp?.classList.add('active'); panelIA?.classList.remove('active');
-    }
-  }
-  tabIA && (tabIA.onclick = () => select('ia'));
-  tabSp && (tabSp.onclick = () => select('sp'));
+  // Tabs
+  const tabIA=document.getElementById('tab-ia'), tabYT=document.getElementById('tab-yt');
+  const panelIA=document.getElementById('panel-ia'), panelYT=document.getElementById('panel-yt');
+  function select(tab){const ia=tab==='ia';tabIA.setAttribute('aria-selected',ia);tabYT.setAttribute('aria-selected',!ia);panelIA.classList.toggle('active',ia);panelYT.classList.toggle('active',!ia);}
+  tabIA.onclick=()=>select('ia'); tabYT.onclick=()=>select('yt');
 
-  // ---- Canvas particles
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  function resize() {
-    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-    canvas.width = innerWidth * dpr;
-    canvas.height = innerHeight * dpr;
-    canvas.style.width = innerWidth + 'px';
-    canvas.style.height = innerHeight + 'px';
+  // Canvas & Visualizador Turbo
+  const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
+  let soundIntensity=0, SCATTER=3, particlesWord=[], confetti=[];
+  let BAR_COUNT=96, barHeights=[], barPeaks=[];
+  let beatCutoff=0, BEAT_DECAY=0.985, BEAT_MIN=0.12;
+
+  function resize(){
+    const dpr=Math.max(1,Math.min(window.devicePixelRatio||1,2));
+    canvas.width=innerWidth*dpr; canvas.height=innerHeight*dpr;
+    canvas.style.width=innerWidth+'px'; canvas.style.height=innerHeight+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    init();
+    BAR_COUNT=Math.max(64,Math.floor(innerWidth/9));
+    barHeights = new Array(BAR_COUNT).fill(0);
+    barPeaks = new Array(BAR_COUNT).fill(0);
   }
   window.addEventListener('resize', resize);
-  const mouse = { x: -9999, y: -9999, radius: 90 };
-  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-  window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
-  let particles = [];
-  const WORD = 'IMAGINATION';
-  const GAP = 4, SIZE = 2, RETURN_SPEED = 20;
-  let SCATTER = 2.6;
-  class Particle {
-    constructor(x,y,c='white') { this.baseX=x; this.baseY=y; this.x=x; this.y=y; this.vx=0; this.vy=0; this.size=SIZE; this.color=c; this.density=Math.random()*40+10; }
-    draw() { ctx.fillStyle=this.color; ctx.fillRect(this.x,this.y,this.size,this.size); }
-    update(soundPush=0) {
-      const dx = mouse.x - this.x, dy = mouse.y - this.y, dist = Math.hypot(dx, dy);
-      if (dist < mouse.radius) {
-        const f = (mouse.radius - dist) / mouse.radius, dirX = dx / (dist || 1), dirY = dy / (dist || 1);
-        this.x -= dirX * f * this.density; this.y -= dirY * f * this.density;
-        this.vx -= dirX * SCATTER * Math.random(); this.vy -= dirY * SCATTER * Math.random();
-      } else {
-        if (this.x !== this.baseX) this.x -= (this.x - this.baseX) / RETURN_SPEED;
-        if (this.y !== this.baseY) this.y -= (this.y - this.baseY) / RETURN_SPEED;
-      }
-      // Empurrão do som (pequeno jitter + leve expansão radial em direção ao centro)
-      const cx = innerWidth/2, cy = innerHeight/2;
-      const dirx = (this.x - cx); const diry = (this.y - cy);
-      const len = Math.hypot(dirx, diry) || 1;
-      this.x += (dirx/len) * soundPush * (0.8 + Math.random()*0.4);
-      this.y += (diry/len) * soundPush * (0.8 + Math.random()*0.4);
-      this.x += (Math.random() - 0.5) * soundPush * 0.8;
-      this.y += (Math.random() - 0.5) * soundPush * 0.8;
+  resize();
 
-      this.x += this.vx; this.y += this.vy; this.vx *= 0.92; this.vy *= 0.92;
+  // Confetti explosivo
+  class Spark {
+    constructor(x,y,e) {
+      const ang=Math.random()*Math.PI*2, spd=(2+Math.random()*3)*(1+e*2);
+      this.x=x; this.y=y; this.vx=Math.cos(ang)*spd; this.vy=Math.sin(ang)*spd;
+      this.life=0; this.maxLife=30+Math.random()*40; this.size=2+Math.random()*3; this.h=Math.random()*360;
+    }
+    update() {
+      this.life++;
+      this.vx*=0.96;
+      this.vy=this.vy*0.96 + 0.08;
+      this.x += this.vx;
+      this.y += this.vy;
+    }
+    draw() {
+      const a = 1 - (this.life/this.maxLife);
+      ctx.fillStyle = `hsla(${this.h},90%,60%,${a})`;
+      ctx.fillRect(this.x, this.y, this.size, this.size);
+    }
+    get dead() { return this.life >= this.maxLife; }
+  }
+  function spawnBurst(x,y,e) {
+    const n = Math.floor(120 + e*300);
+    for (let i=0; i<n; i++) confetti.push(new Spark(x, y, e));
+  }
+
+  // Partículas do título
+  class WordParticle {
+    constructor(x,y) {
+      this.x = this.baseX = x;
+      this.y = this.baseY = y;
+      this.vx = this.vy = 0;
+    }
+    update(p) {
+      this.x += (this.baseX - this.x)/20 + (Math.random()-0.5)*p;
+      this.y += (this.baseY - this.y)/20 + (Math.random()-0.5)*p;
+    }
+    draw() {
+      ctx.fillStyle = `rgba(255,255,255,${0.4 + soundIntensity*0.6})`;
+      const sz = 2 + soundIntensity*5;
+      ctx.fillRect(this.x, this.y, sz, sz);
     }
   }
-  function init() {
+  function initWord() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.save(); ctx.font = 'bold 120px Arial Black'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const midX = innerWidth / 2;
-    ctx.fillStyle = '#111'; ctx.fillRect(0,0,midX,innerHeight);
-    ctx.fillStyle = '#e9e9e9'; ctx.fillRect(midX,0,innerWidth-midX,innerHeight);
-    ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 6;
-    ctx.fillText(WORD, innerWidth/2, innerHeight/2); ctx.restore();
-    const img = ctx.getImageData(0, 0, innerWidth, innerHeight).data;
-    particles = [];
-    for (let y=0; y<innerHeight; y+=GAP) {
-      for (let x=0; x<innerWidth; x+=GAP) {
-        const i = (y*innerWidth + x) * 4, a = img[i + 3];
-        if (a > 128) particles.push(new Particle(x,y));
+    ctx.font = 'bold 120px Arial Black';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('IMAGINATION', innerWidth/2, innerHeight*0.3);
+    const img = ctx.getImageData(0,0,innerWidth,innerHeight).data;
+    particlesWord = [];
+    for (let y=0; y<innerHeight; y+=4) {
+      for (let x=0; x<innerWidth; x+=4) {
+        if (img[(y*innerWidth + x)*4 + 3] > 128) {
+          particlesWord.push(new WordParticle(x,y));
+        }
       }
     }
   }
-  let soundIntensity = 0; // 0..1
-  function animate() {
-    ctx.clearRect(0,0,innerWidth,innerHeight);
-    const grad = ctx.createLinearGradient(innerWidth*0.55,0,innerWidth,0);
-    grad.addColorStop(0,'rgba(255,255,255,0)'); grad.addColorStop(1,'rgba(255,255,255,0.08)');
-    ctx.fillStyle = grad; ctx.fillRect(innerWidth*0.55,0,innerWidth*0.45,innerHeight);
+  initWord();
 
-    // push derivado do som (escala aprox. pixels por frame)
-    const push = soundIntensity * 3.0;
-    for (let p of particles) { p.update(push); p.draw(); }
-    requestAnimationFrame(animate);
-  }
-  resize(); animate();
-
-  // ---- IA: load API_BASE from config.json and autogen
-  let API_BASE = "";
+  // Áudio (IA + Analyser)
+  let audio = new Audio(), audioCtx, analyser, dataArray, bufferLength;
   const hint = document.getElementById('hint');
-  const audio = new Audio();
-  let audioCtx, analyser, dataArray, bufferLength, mediaSrc, lowpass;
-  fetch("config.json").then(r => r.json()).then(cfg => {
-    API_BASE = (cfg.API_BASE || "").replace(/\/$/, "");
-    if (!API_BASE) throw new Error("API_BASE vazio em config.json");
-    autogen();
-  }).catch(err => { hint.textContent = "Configuração ausente: edite config.json"; console.error(err); });
-
-  function setupAudioGraph() {
+  function setupAudio() {
     if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = new AudioContext();
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256; // ajuste de resolução
+    analyser.fftSize = 1024;
     bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);
-
-    mediaSrc = audioCtx.createMediaElementSource(audio);
-
-    // leve filtro + ganho opcional
-    lowpass = audioCtx.createBiquadFilter();
-    lowpass.type = 'lowpass';
-    lowpass.frequency.value = 8000; // corta ultra-agudos para dar estabilidade
-
-    mediaSrc.connect(lowpass);
-    lowpass.connect(analyser);
+    const src = audioCtx.createMediaElementSource(audio);
+    src.connect(analyser);
     analyser.connect(audioCtx.destination);
-
-    // garantir resume em interações
-    const resume = () => audioCtx.state === 'suspended' && audioCtx.resume();
-    window.addEventListener('click', resume);
-    window.addEventListener('keydown', resume);
   }
-
   async function autogen() {
-    try {
-      const r = await fetch(API_BASE + "/api/autogen");
-      const ct = r.headers.get('Content-Type') || '';
-      let url;
-      if (ct.includes('application/json')) {
-        const data = await r.json();
-        url = data.url;
-      } else {
-        const blob = await r.blob();
-        url = URL.createObjectURL(blob);
-      }
-      audio.src = url;
-      setupAudioGraph();
-      hint.textContent = "Pronto — pressione P para tocar/pausar";
-    } catch (e) {
-      hint.textContent = "Erro na autogeração";
-      console.error(e);
-    }
+    audio.src = "musica.mp3"; // ou sua fonte real
+    setupAudio();
+    audio.autoplay = true;
+    audio.play()
+    .then(() => hint.textContent = "Tocando TURBO 🎶")
+    .catch(() => hint.textContent = "Autoplay bloqueado — pressione P");
   }
+  autogen();
 
-  // Recompute intensity each frame
-  function updateSoundIntensity() {
+  // Anim Loop
+  function draw() {
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+
     if (analyser) {
       analyser.getByteFrequencyData(dataArray);
-      // média global + foco em graves (dão a 'batida')
-      let sum = 0, bass = 0, bassBins = Math.max(4, Math.floor(bufferLength * 0.15));
-      for (let i=0;i<bufferLength;i++) sum += dataArray[i];
-      for (let i=0;i<bassBins;i++) bass += dataArray[i];
-      const avg = sum / bufferLength;
-      const bassAvg = bass / bassBins;
-      // normalização: 0..1
-      const level = avg / 255;
-      const bassLevel = bassAvg / 255;
-      // mistura grave + nível geral, com easing
-      const target = Math.min(1, bassLevel*0.8 + level*0.3);
-      soundIntensity += (target - soundIntensity) * 0.15;
-      // variar SCATTER levemente com o som
-      SCATTER = 2.2 + soundIntensity * 2.0;
-    }
-    requestAnimationFrame(updateSoundIntensity);
-  }
-  updateSoundIntensity();
+      let bass=0;
+      const limit = Math.floor(bufferLength * 0.12);
+      for (let i = 0; i < limit; i++) bass += dataArray[i];
+      bass /= limit;
+      const bassLevel = bass / 255;
+      soundIntensity += (bassLevel - soundIntensity) * 0.2;
 
-  // Tocar/pausar com P (e iniciar contexto)
-  window.addEventListener('keydown', (e) => {
+      if (bassLevel > beatCutoff && bassLevel > BEAT_MIN) {
+        beatCutoff = bassLevel * 1.2;
+        spawnBurst(innerWidth/2, innerHeight*0.7, bassLevel);
+      } else {
+        beatCutoff *= BEAT_DECAY;
+      }
+
+      const ground = innerHeight * 0.7;
+      const gap = 2;
+      const barW = (innerWidth - (BAR_COUNT-1)*gap) / BAR_COUNT;
+
+      for (let b = 0; b < BAR_COUNT; b++) {
+        const idx = Math.floor(b/BAR_COUNT * bufferLength);
+        const v = dataArray[idx] / 255;
+        barHeights[b] += (v*innerHeight*0.4 - barHeights[b]) * 0.4;
+        barPeaks[b] = Math.max(barPeaks[b], barHeights[b]);
+        barPeaks[b] *= 0.98;
+        const x = b * (barW + gap);
+
+        ctx.fillStyle = 'rgba(0,200,255,0.8)';
+        ctx.fillRect(x, ground - barHeights[b], barW, barHeights[b]);
+
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(x, ground - barPeaks[b] - 2, barW, 2);
+      }
+    }
+
+    particlesWord.forEach(p => { p.update(soundIntensity*10); p.draw(); });
+
+    for (let i = confetti.length - 1; i >= 0; i--) {
+      confetti[i].update();
+      confetti[i].draw();
+      if (confetti[i].dead) confetti.splice(i, 1);
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // Botão P
+  window.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'p') {
-      setupAudioGraph();
-      if (!audio.src) return;
-      if (audio.paused) audio.play().catch(()=>{});
+      setupAudio();
+      if (audio.paused) audio.play();
       else audio.pause();
     }
   });
