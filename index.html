@@ -48,21 +48,19 @@
         <div class="row">
           <div class="kicker">Geração automática com IA <span class="badge">tecla P toca/pausa</span> <span class="badge">visualização reativa</span></div>
         </div>
-        <div id="hint">A carregar a faixa…</div>
-      </section>
-
-      
-      <!-- Spotify Panel -->
-      <section id="panel-spotify" class="panel" role="tabpanel" aria-labelledby="tab-spotify">
-        <div class="row">
-          <div class="kicker">Playlist incorporada (embed oficial). <span class="badge">Nota:</span> visualização reativa só funciona com o player Premium (SDK). No embed, o navegador bloqueia análise de áudio.</div>
-        </div>
-        <div class="spotify-embed" aria-label="Spotify embed">
-          <iframe style="border:0; width:100%; height:100%;"
-            src="https://open.spotify.com/embed/playlist/37i9dQZF1DX3FNkD0kDpDV"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"></iframe>
-        </div>
+       <div class="video-wrapper">
+  <iframe
+    id="ytplayer"
+    width="560"
+    height="315"
+    src="https://www.youtube.com/embed/r4_26diSPMw?autoplay=1&playsinline=1&loop=1&playlist=r4_26diSPMw&controls=0&modestbranding=1&rel=0&enablejsapi=1"
+    title="YouTube video"
+    frameborder="0"
+    allow="autoplay; encrypted-media; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+  <button id="playWithSound" class="play-btn" style="display:none;">▶️ Reproduzir com som</button>
+</div>
       </section>
     
     </div>
