@@ -1,58 +1,151 @@
-<style>
-  .video-wrapper {
-    position: relative;
-    display: inline-block;
-    display: none; /* Oculta toda a secção */
-  }
-  .play-btn-circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 64px;
-    height: 64px;
-    background: rgba(255, 0, 0, 0.85);
-    border: none;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 28px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: background 0.2s ease;
-    animation: pulse 1.5s infinite;
-  }
-  .play-btn-circle:hover {
-    background: rgba(255, 0, 0, 1);
-  }
-  @keyframes pulse {
-    0% {
-      transform: translate(-50%, -50%) scale(1);
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-    }
-    70% {
-      transform: translate(-50%, -50%) scale(1.05);
-      box-shadow: 0 0 0 15px rgba(255, 0, 0, 0);
-    }
-    100% {
-      transform: translate(-50%, -50%) scale(1);
-      box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-    }
-  }
-</style>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>IMAGINATION — Visualizador TURBO Psicodélico</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { height:100%; margin:0; background:#000; overflow:hidden; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    canvas { display:block; position:fixed; inset:0; z-index:0; }
+    #wrap { position:relative; z-index:10; min-height:100%; display:grid; place-items:center; padding:24px; }
+    .card { width:min(900px, 96vw); background:rgba(255,255,255,.05); border-radius:18px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,.6); backdrop-filter: blur(8px); text-align:center; }
+    h1 { margin:0 0 8px; font-size:20px; color:#fff; letter-spacing:.3px; }
+    #hint { font-size:13px; color:#ddd; opacity:.9; }
+    .ground { margin-top:8px; height:6px; background:linear-gradient(90deg, rgba(255,255,255,.3), rgba(255,255,255,.7), rgba(255,255,255,.3)); border-radius:999px; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="wrap">
+    <div class="card">
+      <h1>IMAGINATION — Visualizador TURBO 🌈</h1>
+      <div id="hint">A carregar a faixa…</div>
+      <div class="ground"></div>
+    </div>
+  </div>
 
-<div class="video-wrapper" id="ytSection">
-  <iframe
-    id="ytplayer"
-    width="560"
-    height="315"
-    src="https://www.youtube.com/embed/r4_26diSPMw?autoplay=1&mute=1&playsinline=1&loop=1&playlist=r4_26diSPMw&controls=0&modestbranding=1&rel=0&enablejsapi=1"
-    title="YouTube video"
-    frameborder="0"
-    allow="autoplay; encrypted-media; picture-in-picture"
-    allowfullscreen>
-  </iframe>
-  <button id="playWithSound" class="play-btn-circle">▶</button>
-</div>
+  <script>
+  // ====== Voz britânica "Welcome to Imagination Hub" ======
+  (function sayWelcome() {
+    if (!("speechSynthesis" in window)) return;
+    const utter = new SpeechSynthesisUtterance("Welcome to Imagination Hub");
+    utter.lang = "en-GB";
+    utter.rate = 0.95; // mais fluido
+    utter.pitch = 0.9; // tom levemente grave
+    utter.volume = 1.0;
+
+    const pickVoice = () => {
+      const voices = window.speechSynthesis.getVoices() || [];
+      const pref = ["Microsoft Hazel", "Google UK English Female", "Microsoft Sonia", "Microsoft Libby"];
+      let v = voices.find(v => pref.some(n => (v.name||"").toLowerCase().includes(n.toLowerCase()))) 
+           || voices.find(v => v.lang && v.lang.startsWith("en-GB")) 
+           || voices.find(v => v.lang && v.lang.startsWith("en")) 
+           || voices[0];
+      if (v) utter.voice = v;
+      try { speechSynthesis.cancel(); speechSynthesis.speak(utter); } catch {}
+    };
+
+    if (speechSynthesis.getVoices().length) pickVoice();
+    else speechSynthesis.onvoiceschanged = pickVoice;
+    setTimeout(() => { if (!speechSynthesis.speaking) pickVoice(); }, 1000);
+  })();
+
+  // ====== Canvas TURBO Psicodélico ======
+  const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
+  let soundIntensity=0, particles=[], confetti=[], hueShift=0;
+  let BAR_COUNT=96, barHeights=[], barPeaks=[];
+  let beatCutoff=0, BEAT_DECAY=0.985, BEAT_MIN=0.12;
+
+  function resize(){
+    const dpr=Math.max(1,Math.min(window.devicePixelRatio||1,2));
+    canvas.width=innerWidth*dpr; canvas.height=innerHeight*dpr;
+    canvas.style.width=innerWidth+"px"; canvas.style.height=innerHeight+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    BAR_COUNT=Math.max(64,Math.floor(innerWidth/9));
+    barHeights=new Array(BAR_COUNT).fill(0);
+    barPeaks=new Array(BAR_COUNT).fill(0);
+    initText();
+  }
+  window.addEventListener('resize',resize); resize();
+
+  class Spark{
+    constructor(x,y,e){const a=Math.random()*Math.PI*2,s=(2+Math.random()*3)*(1+e*2);this.x=x;this.y=y;this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;this.life=0;this.maxLife=30+Math.random()*40;this.size=2+Math.random()*3;this.h=Math.random()*360;}
+    update(){this.life++;this.vx*=0.96;this.vy=this.vy*0.96+0.08;this.x+=this.vx;this.y+=this.vy;}
+    draw(){ctx.fillStyle=`hsla(${this.hue||this.h},90%,60%,${1-this.life/this.maxLife})`;ctx.fillRect(this.x,this.y,this.size,this.size);}
+    get dead(){return this.life>=this.maxLife;}
+  }
+  function burst(x,y,e){for(let i=0;i<120+e*300;i++){let s=new Spark(x,y,e);s.hue=(hueShift+Math.random()*60)%360;confetti.push(s);} }
+
+  class Particle{
+    constructor(x,y){this.x=this.baseX=x;this.y=this.baseY=y;}
+    update(p){this.x+=(this.baseX-this.x)/20+(Math.random()-0.5)*p;this.y+=(this.baseY-this.y)/20+(Math.random()-0.5)*p;}
+    draw(){ctx.fillStyle=`hsla(${(hueShift+180)%360},100%,70%,${0.5+soundIntensity*0.5})`;ctx.fillRect(this.x,this.y,2+soundIntensity*5,2+soundIntensity*5);}
+  }
+  function initText(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.font='bold 120px Arial Black'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#fff'; ctx.fillText('IMAGINATION',innerWidth/2,innerHeight*0.3);
+    const img=ctx.getImageData(0,0,innerWidth,innerHeight).data;
+    particles=[];
+    for(let y=0;y<innerHeight;y+=4){for(let x=0;x<innerWidth;x+=4){if(img[(y*innerWidth+x)*4+3]>128)particles.push(new Particle(x,y));}}
+  }
+
+  // ====== Áudio via YouTube (Piped API) ======
+  const hint=document.getElementById('hint');
+  let audio=new Audio(); audio.crossOrigin="anonymous";
+  let audioCtx, analyser, dataArray, bufferLength;
+
+  function setupAudio(){if(audioCtx)return;audioCtx=new AudioContext();analyser=audioCtx.createAnalyser();analyser.fftSize=1024;bufferLength=analyser.frequencyBinCount;dataArray=new Uint8Array(bufferLength);const src=audioCtx.createMediaElementSource(audio);src.connect(analyser);analyser.connect(audioCtx.destination);}
+  async function autogen(){
+    try{
+      const videoId="9LVr3gxiD1o";
+      const api=`https://pipedapi.kavin.rocks/streams/${videoId}`;
+      const r=await fetch(api); const data=await r.json();
+      const streams=[...(data.audioStreams||[])];
+      streams.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0));
+      const stream=streams.find(s=>(s.codec||"").includes("opus")||(s.codec||"").includes("mp4a"))||streams[0];
+      audio.src=stream.url; setupAudio(); audio.autoplay=true;
+      await audio.play();
+      hint.textContent="Tocando TURBO 🎶 via YouTube";
+    }catch(e){console.error(e);hint.textContent="Erro no áudio";}
+  }
+  autogen();
+
+  // ====== Loop ======
+  function draw(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    hueShift=(hueShift+0.8)%360;
+
+    if(analyser){
+      analyser.getByteFrequencyData(dataArray);
+      let bass=0,limit=Math.floor(bufferLength*0.12);
+      for(let i=0;i<limit;i++)bass+=dataArray[i];bass/=limit;
+      const bassLevel=bass/255;
+      soundIntensity+=(bassLevel-soundIntensity)*0.2;
+
+      if(bassLevel>beatCutoff&&bassLevel>BEAT_MIN){beatCutoff=bassLevel*1.2;burst(innerWidth/2,innerHeight*0.7,bassLevel);}
+      else beatCutoff*=BEAT_DECAY;
+
+      const ground=innerHeight*0.7,gap=2,barW=(innerWidth-(BAR_COUNT-1)*gap)/BAR_COUNT;
+      for(let b=0;b<BAR_COUNT;b++){
+        const idx=Math.floor(b/BAR_COUNT*bufferLength),v=dataArray[idx]/255;
+        barHeights[b]+=(v*innerHeight*0.4-barHeights[b])*0.4;
+        barPeaks[b]=Math.max(barPeaks[b],barHeights[b]);barPeaks[b]*=0.98;
+        const x=b*(barW+gap);
+        ctx.fillStyle=`hsl(${(hueShift+b*3)%360},100%,50%)`;
+        ctx.fillRect(x,ground-barHeights[b],barW,barHeights[b]);
+        ctx.fillStyle="#fff";
+        ctx.fillRect(x,ground-barPeaks[b]-2,barW,2);
+      }
+    }
+    for(const p of particles){p.update(soundIntensity*10);p.draw();}
+    for(let i=confetti.length-1;i>=0;i--){confetti[i].update();confetti[i].draw();if(confetti[i].dead)confetti.splice(i,1);}
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  // tecla P
+  window.addEventListener("keydown",e=>{if(e.key.toLowerCase()==="p"){setupAudio();if(audio.paused)audio.play();else audio.pause();}});
+  </script>
+</body>
+</html>
